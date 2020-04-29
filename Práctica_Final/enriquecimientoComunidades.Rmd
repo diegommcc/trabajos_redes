@@ -1,0 +1,84 @@
+---
+title: "Enriquecimiento Red Drosophila"
+author: "Diego Mañanes"
+date: "29/4/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+outputPath <- "/home/diego/Documentos/proyectos_master/proyectos_redes/trabajos_redes/Práctica_Final/datos"
+
+## packages used
+library(dplyr)
+library(clusterProfiler)
+library(GOSemSim)
+library(DOSE)
+library(ReactomePA)
+library(msigdbr)
+library(KEGGprofile)
+library(org.Dm.eg.db)
+
+library(ChIPpeakAnno)
+library(annotatr)
+library(ChIPseeker)
+
+
+```
+
+
+```{r}
+
+genesCommunities <- read.csv(file.path(outputPath, "max_tabla_comunidades.csv"))
+
+listCommunities <- split(genesCommunities, genesCommunities$community)
+
+filterLen <-sapply(listCommunities, function(x) {ifelse(length(x$node) >= 200, 
+                                                        return(x), return(NULL))})
+
+mappingGenes <- as.data.frame(org.Dm.egALIAS2EG)
+matching <- match(filterLen$`0`$node, mappingGenes$alias_symbol)
+
+filterLen_mapped <- sapply(filterLen, function(x) {
+  if (! is.null(x[[1]])){
+    matching <- match(x$node, mappingGenes$alias_symbol)
+    return(mappingGenes$gene_id[matching])
+  }
+})
+
+filt_null <- sapply(filterLen_mapped, function(x) ! is.null(x))
+filterLen_mapped <- filterLen_mapped[filt_null]
+
+```
+
+```{r}
+
+n <- 1
+ggo1 <- list()
+
+for (i in filterLen_mapped) {
+  x <- sapply(c("MF", "CC", "BP"), function(term) {
+                                              enrichGO(unique(i), org.Dm.eg.db,
+                                              ont = term, qvalueCutoff = 0.05,
+                                              readable = TRUE)})
+
+  ggo1[[names(filterLen_mapped)[n]]] <- x
+  n <- n + 1              
+  }
+
+```
+
+
+
+```{r plotGoAllGenes}
+n <- 1
+for (x in ggo1) {
+  print(barplot(x$MF, showCategory = 10, font.size = 8, title = paste("Función Molecular", length(filterLen_mapped[[n]]))))
+  print(barplot(x$BP, showCategory = 10, font.size = 8, title = paste("Proceso Biológico", length(filterLen_mapped[[n]]))))
+  print(barplot(x$CC, showCategory = 10, font.size = 8, title = paste("Componente Celular", length(filterLen_mapped[[n]]))))
+  n <- n + 1
+}
+```
+
