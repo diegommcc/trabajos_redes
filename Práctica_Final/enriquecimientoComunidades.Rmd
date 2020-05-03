@@ -6,18 +6,30 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-
 
 outputPath <- "/home/diego/Documentos/proyectos_master/proyectos_redes/trabajos_redes/Práctica_Final/datos"
 
+if (! dir.exists(file.path(outputPath, "Figuras"))) {
+  dir.create(file.path(outputPath, "Figuras"), showWarnings = F)
+}
+
+
+knitr::opts_chunk$set(
+    fig.align = "center",
+    fig.path = file.path(outputPath, "Figuras/"),
+    fig.pos = "H",
+    message = FALSE,
+    warning = FALSE,
+    comment = NA,
+    dev = c("jpeg"),
+    dpi = 300
+)
+
+
+
 ## packages used
-library(dplyr)
 library(clusterProfiler)
-library(GOSemSim)
-library(DOSE)
 library(ReactomePA)
-library(msigdbr)
 library(KEGGprofile)
 library(org.Dm.eg.db)
 
@@ -57,12 +69,12 @@ filterLen_mapped <- filterLen_mapped[filt_null]
 
 n <- 1
 ggo1 <- list()
-
+  
 for (i in filterLen_mapped) {
   x <- sapply(c("MF", "CC", "BP"), function(term) {
-                                              enrichGO(unique(i), org.Dm.eg.db,
-                                              ont = term, qvalueCutoff = 0.05,
-                                              readable = TRUE)})
+                    enrichGO(unique(i), org.Dm.eg.db,
+                    ont = term, qvalueCutoff = 0.05,
+                    readable = TRUE)})
 
   ggo1[[names(filterLen_mapped)[n]]] <- x
   n <- n + 1              
@@ -75,10 +87,56 @@ for (i in filterLen_mapped) {
 ```{r plotGoAllGenes}
 n <- 1
 for (x in ggo1) {
-  print(barplot(x$MF, showCategory = 10, font.size = 8, title = paste("Función Molecular", length(filterLen_mapped[[n]]))))
-  print(barplot(x$BP, showCategory = 10, font.size = 8, title = paste("Proceso Biológico", length(filterLen_mapped[[n]]))))
-  print(barplot(x$CC, showCategory = 10, font.size = 8, title = paste("Componente Celular", length(filterLen_mapped[[n]]))))
+  print(barplot(x$MF, showCategory = 10, font.size = 9, 
+                title = paste("Función Molecular. Comunidad de orden", 
+                              length(filterLen_mapped[[n]]))))
+  print(barplot(x$BP, showCategory = 10, font.size = 9, 
+                title = paste("Proceso Biológico. Comunidad de orden", 
+                              length(filterLen_mapped[[n]]))))
+  print(barplot(x$CC, showCategory = 10, font.size = 9, 
+                title = paste("Componente Celular. Comunidad de orden", 
+                              length(filterLen_mapped[[n]]))))
   n <- n + 1
 }
+```
+
+
+```{r}
+
+n <- 1
+reactome <- list()
+  
+for (i in filterLen_mapped) {
+  x <- enrichPathway(na.omit(as.integer(i)), organism = "fly")
+
+  reactome[[names(filterLen_mapped)[n]]] <- x
+  n <- n + 1              
+}
+
+```
+
+```{r reactomePathways}
+
+n <- 1
+for (x in reactome) {
+  print(barplot(x, showCategory = 5, font.size = 10, 
+                title = paste("Función Molecular. Comunidad de orden", 
+                              length(filterLen_mapped[[n]]))))
+  
+  n <- n + 1
+}
+
+```
+
+
+
+
+```{r eval=FALSE, include=FALSE}
+kegg1 <- enrichKEGG(gene = listCommunities[[1]]$node,
+                    organism = "dme")
+
+kpho_KEGGresult <- find_enriched_pathway(listCommunities[[1]]$node, 
+                                        species = 'dme')
+
 ```
 
