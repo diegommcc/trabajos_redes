@@ -25,8 +25,6 @@ knitr::opts_chunk$set(
     dpi = 300
 )
 
-
-
 ## packages used
 library(clusterProfiler)
 library(ReactomePA)
@@ -36,7 +34,7 @@ library(org.Dm.eg.db)
 library(ChIPpeakAnno)
 library(annotatr)
 library(ChIPseeker)
-
+library(ggplot2)
 
 ```
 
@@ -82,20 +80,37 @@ for (i in filterLen_mapped) {
 
 ```
 
+```{r mod903, fig.width=9, fig.asp=0.5}
+barplot(ggo1[[2]]$BP, showCategory = 7, font.size = 12) + 
+  ggtitle(paste("Función Molecular. Comunidad de orden", 
+                length(filterLen_mapped[[2]]))) + 
+  theme(plot.title = element_text(hjust = 0.8, face = "bold"))
+```
+
+```{r mod653, fig.width=9, fig.asp=0.5}
+n = 3
+barplot(ggo1[[n]]$BP, showCategory = 8, font.size = 12) + 
+  ggtitle(paste("Proceso Biológico. Comunidad de orden", 
+                length(filterLen_mapped[[n]]))) + 
+  theme(plot.title = element_text(hjust = 0.8, face = "bold"))
+```
 
 
-```{r plotGoAllGenes}
+```{r plotGoAllGenes, fig.width=9, fig.asp=0.5}
 n <- 1
 for (x in ggo1) {
-  print(barplot(x$MF, showCategory = 10, font.size = 9, 
-                title = paste("Función Molecular. Comunidad de orden", 
-                              length(filterLen_mapped[[n]]))))
-  print(barplot(x$BP, showCategory = 10, font.size = 9, 
-                title = paste("Proceso Biológico. Comunidad de orden", 
-                              length(filterLen_mapped[[n]]))))
-  print(barplot(x$CC, showCategory = 10, font.size = 9, 
-                title = paste("Componente Celular. Comunidad de orden", 
-                              length(filterLen_mapped[[n]]))))
+  print(barplot(x$MF, showCategory = 8, font.size = 12) + 
+          ggtitle(paste("Función Molecular. Comunidad de orden", 
+                        length(filterLen_mapped[[n]]))) + 
+          theme(plot.title = element_text(hjust = 0.5, face = "bold")))
+  print(barplot(x$BP, showCategory = 8, font.size = 12) +
+          ggtitle(paste("Proceso Biológico. Comunidad de orden", 
+                        length(filterLen_mapped[[n]]))) + 
+          theme(plot.title = element_text(hjust = 0.5, face = "bold")))
+  print(barplot(x$CC, showCategory = 8, font.size = 12) + 
+          ggtitle(paste("Componente Celular. Comunidad de orden", 
+                        length(filterLen_mapped[[n]]))) + 
+          theme(plot.title = element_text(hjust = 0.5, face = "bold")))
   n <- n + 1
 }
 ```
